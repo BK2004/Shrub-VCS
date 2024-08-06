@@ -26,7 +26,7 @@ do
 	write "	class ${file^} : public Field {"
 	write "	public:"
 	write "		${file^}(std::string name, Field* parent, bool required) : Field(name, parent, required) {}"
-	write "		bool match(std::vector<std::string>);"
+	write "		ParsedArgs* match(std::vector<std::string>&, ParsedArgs*);"
 	write "	private:"
 	write "	};\n}\n"
 	write "#endif"
@@ -35,8 +35,8 @@ do
 	TRG=$file.cpp
 	write "#include \"$file.h\""
 	write "\nnamespace ArgParse {"
-	write "	bool ${file^}::match(std::vector<std::string> args) {"
-	write "		return true;"
+	write "	ParsedArgs* ${file^}::match(std::vector<std::string>& args, ParsedArgs* parsed_args) {"
+	write "		return parsed_args;"
 	write "	}\n}"
 
 	# Write include for argparse.h

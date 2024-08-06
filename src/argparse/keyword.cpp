@@ -1,7 +1,7 @@
 #include "keyword.h"
 
 namespace ArgParse {
-	bool Keyword::match(std::vector<std::string> args) {
-		return true;
+	ParsedArgs* Keyword::match(std::vector<std::string>& args, ParsedArgs* parsed_args) {
+		return parsed_args;
 	}
 }

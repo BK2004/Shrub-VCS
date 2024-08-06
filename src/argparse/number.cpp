@@ -1,7 +1,7 @@
 #include "number.h"
 
 namespace ArgParse {
-	bool Number::match(std::vector<std::string> args) {
-		return true;
+	ParsedArgs* Number::match(std::vector<std::string>& args, ParsedArgs* parsed_args) {
+		return parsed_args;
 	}
 }
