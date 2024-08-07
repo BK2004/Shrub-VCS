@@ -1,21 +1,30 @@
 #ifndef ARGPARSER_H
 #define ARGPARSER_H
-#include "field.h"
+#include <vector>
+#include <string>
+#include <unordered_map>
+#include <ctype.h>
+#include <format>
 
 namespace ArgParse {
-	struct ParsedArgs {
-		std::unordered_map<std::string, std::string> fields;
-		std::unordered_map<std::string, bool> options;
+	struct Flag {
+		std::string name;
+		char short_name;
 	};
-
+	
 	class ArgParser {
 	public:
-		ArgParser(Field*) { this->field = field; }
-		~ArgParser() { delete this->field; }
+		ArgParser(int, char**);
 
-		ParsedArgs* parse(int, char**);
+		bool match_keyword(std::string);
+		int match_int();
+		std::unordered_map<std::string, bool> match_flags(Flag flags[], int);
+		std::string get_parsed(bool);
 	private:
-		Field* field;
+		int arg_count;
+		int curr_arg;
+		int flag_start;
+		std::vector<std::string> args;
 	};
 }
 
