@@ -30,3 +30,11 @@
 *.exe
 *.out
 *.app
+
+#.svc repo
+.svc
+
+# build files
+build
+
+.vscode

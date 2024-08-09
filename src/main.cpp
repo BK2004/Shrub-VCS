@@ -12,6 +12,7 @@ int main(int argc, char** argv) {
 	std::unordered_map<std::string, Commands::Command*> cmds;
 	cmds["help"] = new Commands::Help(&parser, &cmds); 
 	ADD_CMD(init, Init)
+	ADD_CMD(commit, Commit)
 
 	// Look for command
 	Commands::Command* cmd = nullptr;

@@ -15,18 +15,18 @@ namespace Commands {
 			if (this->commands->count(cmd) > 0) {
 				(*this->commands)[cmd]->help();
 			} else {
-				std::cout << cmd << " is not recognized\n";
+				ERR(cmd << " is not a valid command")
 				std::cout << "For a list of valid commands, see vcs help\n";
 			}
 		} else {
 			// Invalid usage
-			std::cout << "Usage: svc help <cmd>\n\tsvc help\n";
+			ERR("Usage: svc help <cmd>\n\tsvc help");
 		}
 	}
 
 	void Help::help() {
 		std::cout << "help\n";
-		std::cout << "\tGet help with a command or list commands that can be used\n";
+		std::cout << "Description: Get help with a command or list commands that can be used\n";
 		std::cout << "Usage: svc help <cmd>\n";
 		std::cout << "\tsvc help\n";
 		std::cout << "Params:\n";

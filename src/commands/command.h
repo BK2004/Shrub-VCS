@@ -1,11 +1,13 @@
 #ifndef COMMAND_H
 #define COMMAND_H
-#include <filesystem>
 #include <iostream>
 #include "../argparse/argparse.h"
+#include "command_utils.h"
 
-#define SVC_DIR ".svc"
 #define SEE_HELP(cmd) std::cout << "For additional information, see svc help " #cmd "\n";
+#define TEXT_RED "\033[1;31m"
+#define TEXT_RESET "\033[0m"
+#define ERR(text) std::cout << TEXT_RED << text << TEXT_RESET << std::endl;
 
 namespace Commands {
 	class Command {

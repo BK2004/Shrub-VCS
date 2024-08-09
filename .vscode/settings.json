@@ -110,6 +110,7 @@
 		"typeinfo": "cpp",
 		"valarray": "cpp",
 		"variant": "cpp",
-		"*.idl": "cpp"
+		"*.idl": "cpp",
+		"filesystem": "cpp"
 	}
 }
