@@ -4,7 +4,8 @@
 #include <iostream>
 #include "../argparse/argparse.h"
 
-#define VCS_DIR ".vcs"
+#define SVC_DIR ".svc"
+#define SEE_HELP(cmd) std::cout << "For additional information, see svc help " #cmd "\n";
 
 namespace Commands {
 	class Command {
@@ -13,6 +14,7 @@ namespace Commands {
 		~Command() {}
 
 		virtual void exec() = 0;
+		virtual void help() = 0;
 	protected:
 		ArgParse::ArgParser* parser;
 	};

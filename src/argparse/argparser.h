@@ -20,6 +20,7 @@ namespace ArgParse {
 		int match_int();
 		std::unordered_map<std::string, bool> match_flags(Flag flags[], int);
 		std::string match_arg();
+		std::string match_word();
 		std::string get_parsed(bool) const;
 		bool is_parsed() const;
 	private:

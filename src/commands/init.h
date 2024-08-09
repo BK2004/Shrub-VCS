@@ -7,6 +7,7 @@ namespace Commands {
 	public:
 		Init(ArgParse::ArgParser* parser) : Command(parser) {}
 		void exec();
+		void help();
 	};
 }
 

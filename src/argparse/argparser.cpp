@@ -152,6 +152,24 @@ namespace ArgParse {
 		return this->args[this->curr_arg++];
 	}
 
+	// ArgParser::match_word
+	// 	Matches a word
+	// Params:
+	// Returns:
+	// 	Matched word or "" if not matched
+	std::string ArgParser::match_word() {
+		if (this->curr_arg >= this->flag_start) {
+			return "";
+		}
+
+		// Check that all letters in arg are alphabetical
+		for (int i = 0; i < this->args[this->curr_arg].size(); i++) {
+			if (!isalpha(this->args[this->curr_arg][i])) return "";
+		}
+
+		return this->args[this->curr_arg++];
+	}
+
 	// ArgParser::is_parsed
 	// 	Get whether args have been fully parsed
 	// Params:
