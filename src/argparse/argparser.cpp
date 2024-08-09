@@ -2,11 +2,11 @@
 #include <iostream>
 namespace ArgParse {
 	ArgParser::ArgParser(int arg_count, char** cli_args) {
-		this->arg_count = arg_count - 1;
-		this->curr_arg = 0;
+		this->arg_count = arg_count;
+		this->curr_arg = 1;
 		
 		// Insert cli_args into args as std::strings and sort options to the back, keeping keywords in given order
-		for (int i = 1; i < arg_count; i++) {
+		for (int i = 0; i < arg_count; i++) {
 			this->args.push_back(std::string(cli_args[i]));
 		}
 
@@ -139,13 +139,35 @@ namespace ArgParse {
 		return flag_map;
 	}
 
+	// ArgParser::match_arg
+	// 	Match a non-option arg
+	// Params:
+	// Returns:
+	// 	Matched arg or "" if not matched
+	std::string ArgParser::match_arg() {
+		if (this->curr_arg >= this->flag_start) {
+			return "";
+		}
+
+		return this->args[this->curr_arg++];
+	}
+
+	// ArgParser::is_parsed
+	// 	Get whether args have been fully parsed
+	// Params:
+	// Returns:
+	// 	if args have been parsed
+	bool ArgParser::is_parsed() const {
+		return this->curr_arg >= this->flag_start;
+	}
+
 	// ArgParser::get_parsed
 	// 	Get all parsed args
 	// 	Include flags by setting incl_flags=true
 	// Params:
 	// Returns:
 	// 	Space-delimited list of args that have been parsed (and flags if desired)
-	std::string ArgParser::get_parsed(bool incl_flags) {
+	std::string ArgParser::get_parsed(bool incl_flags) const {
 		std::string out = "";
 
 		for (int i = 0; i < this->curr_arg; i++) {
