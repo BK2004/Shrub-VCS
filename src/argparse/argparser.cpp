@@ -82,10 +82,10 @@ namespace ArgParse {
 	// 	flags - List of flags to match; flags with short_name = \0 are assumed to not have short form
 	// Returns:
 	// 	Map of flag names to true/false
-	std::unordered_map<std::string, bool> ArgParser::match_flags(Flag flags[], int num_flags) {
+	std::map<std::string, bool> ArgParser::match_flags(Flag flags[], int num_flags) {
 		// Check for conflicts
-		std::unordered_map<std::string, int> found_names;
-		std::unordered_map<char, int> found_short_names;
+		std::map<std::string, int> found_names;
+		std::map<char, int> found_short_names;
 
 		for (int i = 0; i < num_flags; i++) {
 			if (found_names.count(flags[i].name) > 0) {
@@ -104,8 +104,8 @@ namespace ArgParse {
 		}
 
 		// No conflicts, populate flag map with names and link short names to long names
-		std::unordered_map<std::string, bool> flag_map;
-		std::unordered_map<char, std::string> short_to_name;
+		std::map<std::string, bool> flag_map;
+		std::map<char, std::string> short_to_name;
 		for (int i = 0; i < num_flags; i++) {
 			flag_map[flags[i].name] = false;
 			if (flags[i].short_name != '\0') short_to_name[flags[i].short_name] = flags[i].name;

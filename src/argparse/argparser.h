@@ -2,7 +2,7 @@
 #define ARGPARSER_H
 #include <vector>
 #include <string>
-#include <unordered_map>
+#include <map>
 #include <ctype.h>
 #include <format>
 
@@ -18,7 +18,7 @@ namespace ArgParse {
 
 		bool match_keyword(std::string);
 		int match_int();
-		std::unordered_map<std::string, bool> match_flags(Flag flags[], int);
+		std::map<std::string, bool> match_flags(Flag flags[], int);
 		std::string match_arg();
 		std::string match_word();
 		std::string get_parsed(bool) const;

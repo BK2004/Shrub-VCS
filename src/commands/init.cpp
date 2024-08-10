@@ -2,7 +2,7 @@
 
 namespace Commands {
 	void Init::exec() {
-		const std::string subdirs[] = {"staging", "commits"};
+		const std::string subdirs[] = {"staging", "objects", "refs"};
 
 		std::string arg = this->parser->match_arg();
 		if (arg.empty() || !this->parser->is_parsed()) {
