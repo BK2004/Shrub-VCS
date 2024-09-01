@@ -48,6 +48,7 @@ namespace Commands {
 				}
 			} else {
 				std::filesystem::remove(dir);
+				std::filesystem::create_directories(dir.parent_path());
 				std::filesystem::copy(loc_path, dir, copy_ops);
 			}
 		}

@@ -1,9 +1,10 @@
 @echo off
 set CPP_COMPILER=g++
 set OUT=.\build
-set DIRS=argparse commands
+set DIRS=argparse commands libs
 set MAIN_DIR=.\src
 set BUILD_EXE=app.exe
+set CLIBS=-lz -lcrypto
 
 set OUT_ARGS=-o %OUT%\%BUILD_EXE% %MAIN_DIR%\main.cpp
 
@@ -18,4 +19,4 @@ if exist %OUT%\ (
 
 mkdir %OUT%
 
-%CPP_COMPILER% %OUT_ARGS%
+%CPP_COMPILER% %OUT_ARGS% %CLIBS%

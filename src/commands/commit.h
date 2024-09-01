@@ -7,6 +7,7 @@ namespace Commands {
 	public:
 		Commit(ArgParse::ArgParser* parser) : Command(parser) {}
 		void exec();
+		std::filesystem::path dfs_commit(const std::filesystem::directory_entry&);
 		void help();
 	};
 }
