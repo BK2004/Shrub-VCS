@@ -114,6 +114,12 @@ void SHA256s::final(unsigned char *digest)
     }
 }
 
+// sha256
+//  Hash string input
+// Params:
+//  input: Input to hash
+// Returns:
+//  Hashed string
 std::string sha256(std::string input)
 {
     unsigned char digest[SHA256s::DIGEST_SIZE];
@@ -153,6 +159,8 @@ std::string sha256_file(std::filesystem::path loc) {
 
     SHA256_CTX ctx;
     SHA256_Init(&ctx);
+    strncpy(buffer, loc.filename().string().c_str(), sizeof buffer - 1);
+    SHA256_Update(&ctx, buffer, loc.filename().string().size());
 
     while (fp.good()) {
         fp.read(buffer, buffer_size);

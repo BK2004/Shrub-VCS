@@ -1,5 +1,4 @@
 #include "commit.h"
-#include "../libs/sha256.h"
 
 namespace Commands {
 	void Commit::exec() {
@@ -22,20 +21,27 @@ namespace Commands {
 		try {
 			// Go to staging directory and create obj for each child of staging dir
 			std::filesystem::path staging_dir = svc_dir / "staging";
-			int num_subfiles = 0;
+			std::vector<std::string> children;
 			for (const auto & subfile : std::filesystem::directory_iterator(staging_dir)) {
 				auto new_path = this->dfs_commit(subfile);
-				num_subfiles++;
+				// Only track child if it is changed
+				if (this->wrote_new)
+					children.push_back(new_path.parent_path().filename().string() + new_path.filename().string());
 			}
 
-			if (num_subfiles == 0) {
-				std::cout << "No files in staging." << std::endl;
-				return;
+			if (children.size() == 0) {
+				std::cout << "Nothing to commit." << std::endl;
 			}
 
-			// Delete objects in staging dir if commit is successful
+			// Delete objects in staging dir
 			for (const auto & subfile : std::filesystem::directory_iterator(staging_dir)) {
 				std::filesystem::remove_all(subfile);
+			}
+
+			if (children.size() > 0) {
+				// Create commit object, link it to current head
+				auto prev_head = get_ref("head");
+				create_commit_obj(msg, children, prev_head.empty() ? NULL : &prev_head);
 			}
 		} catch (std::string err) {
 			ERR(err);
@@ -62,10 +68,14 @@ namespace Commands {
 				concat << children[i];
 			}
 
-			return create_obj(entry.path(), sha256(concat.str()), &children);
+			auto res = create_obj(entry.path(), sha256(concat.str()), &children);
+			this->wrote_new = created_new;
+			return res;
 		} else {
 			// Not a directory, directly create object
-			return create_obj(entry.path(), sha256_file(entry.path()), nullptr);
+			auto res = create_obj(entry.path(), sha256_file(entry.path()), nullptr);
+			this->wrote_new = created_new;
+			return res;
 		}
 	}
 

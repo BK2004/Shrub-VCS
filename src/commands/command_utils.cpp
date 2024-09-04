@@ -2,6 +2,8 @@
 #include <stdio.h>
 
 namespace Commands {
+	bool created_new = false;
+
 	// get_svc_dir
 	// 	Get path of .svc directory in current directory
 	// Params:
@@ -19,6 +21,45 @@ namespace Commands {
 
 		dir.clear();
 		return dir;
+	}
+
+	// update_ref
+	// 	Update reference under .svc/refs
+	// Params:
+	// 	ref_name: Name of reference to update
+	// 	value: New value of reference
+	// Returns:
+	void update_ref(const char* ref_name, std::string value) {
+		auto svc_dir = get_svc_dir();
+		if (svc_dir.empty()) return;
+
+		std::filesystem::path ref_path = svc_dir / "refs"/ ref_name;
+		std::ofstream ref_ofs(ref_path);
+		if (!ref_ofs) return;
+
+		ref_ofs << value;
+		ref_ofs.close();
+	}
+
+	// get_ref
+	// 	Get value of ref
+	// Params:
+	// 	ref_name: Name of reference to get
+	// Returns:
+	// 	Value of ref
+	std::string get_ref(const char* ref_name) {
+		auto svc_dir = get_svc_dir();
+		if (svc_dir.empty()) return "";
+
+		auto ref_path = svc_dir / "refs" / ref_name;
+		std::ifstream ref(ref_path);
+		if (!ref) return "";
+
+		std::string out;
+		ref >> out;
+
+		ref.close();
+		return out;
 	}
 
 	// create_obj
@@ -39,6 +80,7 @@ namespace Commands {
 	// 	Path to object file if successful
 	// 	zerror / empty path if failed
 	std::filesystem::path create_obj(std::filesystem::path loc, std::string name, std::vector<std::string>* children) {
+		created_new = false;
 		std::filesystem::path obj_dir = get_svc_dir() / "objects";
 		if (obj_dir.parent_path().filename() != SVC_DIR) return "";
 
@@ -54,7 +96,7 @@ namespace Commands {
 		if (!dest_ofstream) throw "Couldn't open " + dest_path.string();
 
 		// Write filename, children hashes, etc. to header
-		std::string filename = std::filesystem::canonical(loc).lexically_relative(obj_dir.parent_path().parent_path()).string();
+		std::string filename = std::filesystem::canonical(loc).lexically_relative(obj_dir.parent_path() / "staging").string();
 		dest_ofstream << filename << std::endl;
 		if (children) {
 			dest_ofstream << children->size() << " ";
@@ -67,7 +109,10 @@ namespace Commands {
 		dest_ofstream.close();
 
 		// Compress until EOF if src is a file
-		if (!std::filesystem::is_regular_file(loc)) return dest_path;
+		if (!std::filesystem::is_regular_file(loc)) {
+			created_new = true;
+			return dest_path;
+		}
 
 		FILE* src = fopen(loc.string().c_str(), "rb");
 		if (ferror(src)) {
@@ -131,6 +176,71 @@ namespace Commands {
 		deflateEnd(&strm);
 		fclose(src);
 		fclose(dest);
+		created_new = true;
+		return dest_path;
+	}
+
+	// create_commit_obj
+	// 	Create commit object file and update head ref
+	// 	Commit file laid out as such:
+	// 		<length of message> <message>
+	// 		<commit date/time>
+	// 		<# children> <child 1>
+	// 		<child 2>
+	// 		...
+	// 		<child n>
+	// 		<has previous commit (T/F)><previous commit id?>
+	// Params:
+	// 	message: commit message
+	// 	children: "children" of commit, i.e., updated root files in commit
+	// 	prev: Previous commit id
+	// Returns:
+	// 	Path to commit object file
+	std::filesystem::path create_commit_obj(std::string& message, std::vector<std::string>& children, std::string* prev) {
+		std::filesystem::path obj_dir = get_svc_dir() / "objects";
+		if (obj_dir.parent_path().filename() != SVC_DIR) return "";
+
+		std::ostringstream commit_contents;
+		commit_contents << message.size() << " " << message << std::endl;
+
+		// Get current date/time
+		time_t timestamp;
+		time(&timestamp);
+		char buf[sizeof "2011-10-08T07:07:09Z"];
+		strftime(buf, sizeof buf, "%Y-%m-%dT%H:%M:%SZ", gmtime(&timestamp));
+
+		commit_contents << buf << std::endl;
+
+		// Output child files to commit contents
+		commit_contents << children.size() << " ";
+		for (size_t i = 0; i < children.size(); i++) {
+			commit_contents << children[i] << std::endl;
+		}
+
+		if (prev == NULL) {
+			commit_contents << "F";
+		} else {
+			commit_contents << "T" << *prev;
+		}
+
+		std::string hashed_commit = sha256(commit_contents.str());
+		update_ref("head", hashed_commit);
+
+		// Write commit details to file
+		// Create folder to hold new obj under .svc/objects (e.g., .svc/objects/o7/lsdfK3...)
+		char obj_folder[3] = {hashed_commit[0], hashed_commit[1]};
+		std::filesystem::create_directory(obj_dir / obj_folder);
+		std::filesystem::path dest_path = obj_dir / obj_folder / (hashed_commit.substr(2));
+
+		std::ofstream dest(dest_path);
+		if (!dest) { return ""; }
+
+		dest << commit_contents.str();
+		dest.close();
+		commit_contents.clear();
+
+		LOG("commits/head", hashed_commit << ": " << buf << std::endl << "\"" << message << "\"" << std::endl);
+
 		return dest_path;
 	}
 }

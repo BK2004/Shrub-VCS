@@ -5,8 +5,13 @@ set DIRS=argparse commands libs
 set MAIN_DIR=.\src
 set BUILD_EXE=app.exe
 set CLIBS=-lz -lcrypto
+set PRE_BUILD=argparse/gen_argparse.sh commands/gen_commands.sh
 
 set OUT_ARGS=-o %OUT%\%BUILD_EXE% %MAIN_DIR%\main.cpp
+
+FOR %%p in (%PRE_BUILD%) DO (
+	bash %MAIN_DIR:\=/%/%%p
+)
 
 FOR %%d IN (%DIRS%) DO (
 	call set "OUT_ARGS=%%OUT_ARGS%% -I %MAIN_DIR%\%%d"
