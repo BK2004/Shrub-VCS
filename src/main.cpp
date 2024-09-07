@@ -1,6 +1,7 @@
 #include <iostream>
 #include <unordered_map>
 #include "./commands/commands.h"
+#include "dict.h"
 
 #define ADD_CMD(name, class) cmds[#name] = new Commands:: class (&parser);
 

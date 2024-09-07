@@ -69,4 +69,26 @@ namespace Dict {
 			dict_file << it->first.size() << ":" << it->first << it->second << std::endl;
 		}
 	}
+
+	// build_trie
+	// 	Builds DirTrie from dict
+	// Params:
+	// 	dict: Dict of filenames and hashes
+	// Returns:
+	// 	DirTrie
+	DirTrie::DirTrie<std::string>* build_trie(std::unordered_map<std::string, std::string>& dict) {
+		auto svc_dir = Repo::get_svc_dir();
+		if (svc_dir.empty()) throw "Directory not being tracked.";
+		auto src_dir = svc_dir.parent_path();
+		auto res = new DirTrie::DirTrie<std::string>(src_dir, "");
+
+		for (auto it = dict.begin(); it != dict.end(); it++) {
+			auto new_path = src_dir / it->first;
+			res->insert(new_path, it->second, "");
+		}
+
+		res->print_trie();
+
+		return res;
+	}
 }

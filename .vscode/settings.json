@@ -111,6 +111,7 @@
 		"valarray": "cpp",
 		"variant": "cpp",
 		"*.idl": "cpp",
-		"filesystem": "cpp"
+		"filesystem": "cpp",
+		"stack": "cpp"
 	}
 }

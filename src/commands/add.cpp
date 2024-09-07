@@ -105,22 +105,22 @@ namespace Commands {
 				concat << children[i];
 			}
 
-			auto res = Objects::create_obj(entry.path(), sha256(concat.str()), &children);
-			std::string filehash = res.parent_path().filename().string() + res.filename().string();
-			if (dict.count(entry.path().string()) > 0 && dict[entry.path().string()] != filehash) {
-				// Update dict entry
-				dict[entry.path().string()] = filehash;
-			}
+			auto filehash = sha256(concat.str());
+			auto res = Objects::create_obj(entry.path(), filehash, &children);
+
+			// Update dict entry
+			dict[entry.path().string()] = filehash;
+
 			this->wrote_new = Repo::created_new;
 			return res;
 		} else {
 			// Not a directory, directly create object
-			auto res = Objects::create_obj(entry.path(), sha256_file(entry.path()), nullptr);
-			std::string filehash = res.parent_path().filename().string() + res.filename().string();
-			if (dict.count(entry.path().string()) > 0 && dict[entry.path().string()] != filehash) {
-				// Update dict entry
-				dict[entry.path().string()] = filehash;
-			}
+			auto filehash = sha256_file(entry.path());
+			auto res = Objects::create_obj(entry.path(), filehash, nullptr);
+			
+			// Update dict entry
+			dict[entry.path().string()] = filehash;
+			
 			this->wrote_new = Repo::created_new;
 			return res;
 		}
