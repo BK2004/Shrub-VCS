@@ -27,7 +27,6 @@ namespace DirTrie {
 		void insert(std::filesystem::path& path, T val, T default_val) {
 			// Separate path into its part
 			auto path_stack = separate_path(path);
-			std::cout << "Separated into " << path_stack.size() << " layers\n";
 
 			this->insert_helper("", path_stack, val, default_val);
 		}
@@ -66,17 +65,25 @@ namespace DirTrie {
 
 		T get_val() const { return this->val; }
 		void set_val(T val) { this->val = val; }
+		std::unordered_map<std::string, DirTrie<T>*>* get_children() { return &(this->children); }
+		std::filesystem::path get_root() const { return this->root; }
 	private:
 		// Separate path into stack containing folders of path
 		std::stack<std::string> separate_path(std::filesystem::path& path) {
 			std::stack<std::string> stack;
 			auto curr = std::filesystem::absolute(path);
+			std::cout << curr.string() << std::endl;
 
 			int i = 0;
+			int skip = 0; // Skip adds if '..'
 			int root_len = this->root.string().size();
 			while (!curr.empty() && curr.string().size() > root_len && curr != this->root) {
-				if (curr.filename().string() != ".")
-					stack.push(curr.filename().string());
+				if (curr.filename().string() == "..") {
+					skip++;
+				} else if (curr.filename().string() != ".") {
+					if (skip == 0) stack.push(curr.filename().string());
+					else skip--;
+				}
 				curr = curr.parent_path();
 			}
 
@@ -102,11 +109,14 @@ namespace DirTrie {
 			return this->children[top]->insert_helper(path, path_stack, val, default_val);
 		}
 
-		DirTrie<T>* get_node(std::stack<std::string>& path_stack) const {
+		DirTrie<T>* get_node(std::stack<std::string>& path_stack) {
 			if (path_stack.empty()) return this;
 
 			auto top = path_stack.top(); path_stack.pop();
-			if (this->children.count(top) == 0) throw "Path not in dirtrie";
+			if (this->children.count(top) == 0) {
+				std::cout << top << std::endl;
+				throw "Path not in dirtrie";
+			};
 
 			return this->children[top]->get_node(path_stack);
 		}

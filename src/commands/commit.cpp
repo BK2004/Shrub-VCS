@@ -20,6 +20,7 @@ namespace Commands {
 		
 		try {
 			auto staging_dict = Dict::read_dict_file("STAGING");
+			auto staging_trie = Dict::build_trie(staging_dict);
 			
 		} catch (std::string err) {
 			ERR(err);

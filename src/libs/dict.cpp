@@ -54,6 +54,10 @@ namespace Dict {
 
 	// write_dict_file
 	// 	Writes dict to dict file
+	// 	dict stored as:
+	// 		<#chars in filename>:<filename1><hash1>
+	// 		<#chars in filename>:<filename2><hash2>
+	// 		...
 	// Params:
 	// 	dict_filename: Dict file to write to
 	// 	file_hashes: Map of files to hashes to use as basis
@@ -72,6 +76,10 @@ namespace Dict {
 
 	// build_trie
 	// 	Builds DirTrie from dict
+	// 	dict stored as:
+	// 		<#chars in filename>:<filename1><hash1>
+	// 		<#chars in filename>:<filename2><hash2>
+	// 		...
 	// Params:
 	// 	dict: Dict of filenames and hashes
 	// Returns:
@@ -87,8 +95,39 @@ namespace Dict {
 			res->insert(new_path, it->second, "");
 		}
 
-		res->print_trie();
-
 		return res;
+	}
+
+	// write_trie_to_dict
+	// 	Writes DirTrie to dict file
+	// 	dict stored as:
+	// 		<#chars in filename>:<filename1><hash1>
+	// 		<#chars in filename>:<filename2><hash2>
+	// 		...
+	// Params:
+	// 	trie: DirTrie
+	// 	dict_filename: Name of dict file
+	// Returns: N/A
+	void write_trie_to_dict(DirTrie::DirTrie<std::string>* trie, std::string& dict_filename) {
+		auto svc_dir = Repo::get_svc_dir();
+		if (svc_dir.empty()) throw "Not tracking directory (write_trie_to_dict:1)";
+
+		std::ofstream dict_file(svc_dir / dict_filename);
+		if (!dict_file) throw "Failed to write to " + dict_filename + " (write_trie_to_dict:2)";
+
+		std::stack<DirTrie::DirTrie<std::string>*> dfs;
+		dfs.push(trie);
+
+		while (!dfs.empty()) {
+			auto dirtrie = dfs.top(); dfs.pop();
+			if (!dirtrie->get_val().empty()) {
+				// Write to dict file
+				auto root_path = std::filesystem::relative(dirtrie->get_root(), svc_dir.parent_path());
+				dict_file << root_path.string().size() << ":" << root_path.string() << dirtrie->get_val() << std::endl;
+			}
+			for (auto it = dirtrie->get_children()->begin(); it != dirtrie->get_children()->end(); it++) {
+				dfs.push(it->second);
+			}
+		}
 	}
 }
