@@ -3,7 +3,7 @@
 namespace Commands {
 	void Add::exec() {
 		// Get path to staging folder
-		std::filesystem::path svc_dir = get_svc_dir();
+		std::filesystem::path svc_dir = Repo::get_svc_dir();
 		if (svc_dir.empty()) {
 			ERR(std::filesystem::current_path().string() << " is not being tracked.");
 			SEE_HELP(init)
@@ -19,7 +19,7 @@ namespace Commands {
 		std::unordered_map<std::string, std::string> staging_dict;
 		bool updated_dict = false;
 		try {
-			staging_dict = read_dict_file("STAGING");
+			staging_dict = Dict::read_dict_file("STAGING");
 		} catch (std::string e) {
 			ERR(e)
 			return;
@@ -35,7 +35,6 @@ namespace Commands {
 			}
 
 			std::filesystem::path loc_path = std::filesystem::canonical(loc);
-			std::cout << loc_path << std::endl;
 			if (svc_dir.parent_path().string().size() > loc_path.string().size()) {
 				std::cout << "Cannot add files outside of directory. (" << loc << ")\n";
 				return;
@@ -62,14 +61,14 @@ namespace Commands {
 					for (auto it = children.begin(); it != children.end(); it++) {
 						concat << *it;
 					}
-					auto res = create_obj(loc_path, sha256(concat.str()), &children);
+					auto res = Objects::create_obj(loc_path, sha256(concat.str()), &children);
 					std::string filehash = res.parent_path().filename().string() + res.filename().string();
 					if (staging_dict.count(relative_path.string()) == 0 || staging_dict[relative_path.string()] != filehash) {
 						staging_dict[relative_path.string()] = filehash;
 						updated_dict = true;
 					}
 				} else {
-					auto obj_path = create_obj(loc_path, sha256_file(loc_path), NULL);
+					auto obj_path = Objects::create_obj(loc_path, sha256_file(loc_path), NULL);
 					std::string filehash = obj_path.parent_path().filename().string() + obj_path.filename().string();
 					if (staging_dict.count(relative_path.string()) == 0 || staging_dict[relative_path.string()] != filehash) {
 						staging_dict[relative_path.string()] = filehash;
@@ -83,7 +82,7 @@ namespace Commands {
 		}
 
 		// If staging dict was changed, write to STAGING
-		if (updated_dict) write_dict_file("STAGING", staging_dict);
+		if (updated_dict) Dict::write_dict_file("STAGING", staging_dict);
 		else std::cout << "Nothing to add." << std::endl;
 	}
 
@@ -106,23 +105,23 @@ namespace Commands {
 				concat << children[i];
 			}
 
-			auto res = create_obj(entry.path(), sha256(concat.str()), &children);
+			auto res = Objects::create_obj(entry.path(), sha256(concat.str()), &children);
 			std::string filehash = res.parent_path().filename().string() + res.filename().string();
 			if (dict.count(entry.path().string()) > 0 && dict[entry.path().string()] != filehash) {
 				// Update dict entry
 				dict[entry.path().string()] = filehash;
 			}
-			this->wrote_new = created_new;
+			this->wrote_new = Repo::created_new;
 			return res;
 		} else {
 			// Not a directory, directly create object
-			auto res = create_obj(entry.path(), sha256_file(entry.path()), nullptr);
+			auto res = Objects::create_obj(entry.path(), sha256_file(entry.path()), nullptr);
 			std::string filehash = res.parent_path().filename().string() + res.filename().string();
 			if (dict.count(entry.path().string()) > 0 && dict[entry.path().string()] != filehash) {
 				// Update dict entry
 				dict[entry.path().string()] = filehash;
 			}
-			this->wrote_new = created_new;
+			this->wrote_new = Repo::created_new;
 			return res;
 		}
 	}

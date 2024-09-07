@@ -1,4 +1,5 @@
 #include "init.h"
+#include "repo.h"
 
 namespace Commands {
 	void Init::exec() {
@@ -13,7 +14,7 @@ namespace Commands {
 
 		std::filesystem::path path = arg + "\\" + SVC_DIR;
 
-		if (!get_svc_dir().empty()) {
+		if (!Repo::get_svc_dir().empty()) {
 			std::cout << arg << " is already being tracked." << std::endl;
 			return;
 		}
