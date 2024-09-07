@@ -6,13 +6,15 @@
 #include <zlib.h>
 #include <iostream>
 #include <algorithm>
+#include <unordered_map>
 #include <cassert>
 #include <ctime>
 #include "../libs/sha256.h"
 
 #define CHUNK 16384
 #define SVC_DIR ".svc"
-#define LOG(logfile,contents) std::ofstream( get_svc_dir() / "logs" / logfile, std::ios::app ) << contents
+#define APPEND(file,contents) std::ofstream( get_svc_dir() / file, std::ios::app ) << contents
+#define LOG(logfile,contents) APPEND( "logs" #logfile, contents )
 
 namespace Commands {
 	std::filesystem::path get_svc_dir();
@@ -20,6 +22,8 @@ namespace Commands {
 	std::filesystem::path create_commit_obj(std::string&, std::vector<std::string>&, std::string*);
 	void update_ref(const char*, std::string);
 	std::string get_ref(const char*);
+	std::unordered_map<std::string, std::string> read_dict_file(std::string);
+	void write_dict_file(std::string, std::unordered_map<std::string, std::string>&);
 
 	extern bool created_new; // flag = true if create_obj finds hashed file
 }

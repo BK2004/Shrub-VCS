@@ -3,18 +3,25 @@
 namespace Commands {
 	void Add::exec() {
 		// Get path to staging folder
-		std::filesystem::path staging_dir = get_svc_dir();
-		if (staging_dir.empty()) {
+		std::filesystem::path svc_dir = get_svc_dir();
+		if (svc_dir.empty()) {
 			ERR(std::filesystem::current_path().string() << " is not being tracked.");
 			SEE_HELP(init)
 			return;
 		}
-		staging_dir = staging_dir / "staging";
-		auto parent_dir = staging_dir.parent_path().parent_path();
 
 		// There should be at least 1 arg for location
 		if (this->parser->is_parsed()) {
 			ERR("Usage: svc add <loc1> <loc2> ...")
+			return;
+		}
+
+		std::unordered_map<std::string, std::string> staging_dict;
+		bool updated_dict = false;
+		try {
+			staging_dict = read_dict_file("STAGING");
+		} catch (std::string e) {
+			ERR(e)
 			return;
 		}
 
@@ -28,29 +35,95 @@ namespace Commands {
 			}
 
 			std::filesystem::path loc_path = std::filesystem::canonical(loc);
-			if (parent_dir.string().size() > loc_path.string().size()) {
+			std::cout << loc_path << std::endl;
+			if (svc_dir.parent_path().string().size() > loc_path.string().size()) {
 				std::cout << "Cannot add files outside of directory. (" << loc << ")\n";
 				return;
 			}
 
-			// Ignore SVC_DIR
-			if (loc_path == staging_dir.parent_path() || loc_path.filename() == ".git") continue;
+			// Ignore SVC_DIR (and .git for now)
+			if (loc_path == svc_dir || loc_path.filename() == ".git") continue;
 
-			std::filesystem::path dir = loc_path.string().size() == parent_dir.string().size() ? staging_dir / "" : 
-				staging_dir / loc_path.string().substr(parent_dir.string().size() + 1);
+			auto relative_path = std::filesystem::relative(loc_path, svc_dir.parent_path());
+			try {
+				if (std::filesystem::is_directory(loc_path)) {
+					// Create obj for each child of loc
+					std::vector<std::string> children;
+					for (const auto & subfile : std::filesystem::directory_iterator(loc_path)) {
+						// Ignore SVC_DIR (and .git for now)
+						if (subfile.path() == svc_dir || subfile.path().filename() == ".git") continue;
+						auto new_path = this->dfs_add(subfile, staging_dict);
+						children.push_back(new_path.parent_path().filename().string() + new_path.filename().string());
+					}
 
-			if (std::filesystem::is_directory(loc_path)) {
-				std::filesystem::create_directories(dir);
-				for (auto& entry : std::filesystem::directory_iterator(loc_path)) {
-					if (entry.path() == staging_dir.parent_path()  || entry.path().filename() == ".git") continue;
-					std::filesystem::remove(dir / entry.path().filename());
-					std::filesystem::copy(entry.path(), dir / entry.path().filename(), copy_ops);
+					// Update staging entry for filename
+					sort(children.begin(), children.end());
+					std::ostringstream concat;
+					for (auto it = children.begin(); it != children.end(); it++) {
+						concat << *it;
+					}
+					auto res = create_obj(loc_path, sha256(concat.str()), &children);
+					std::string filehash = res.parent_path().filename().string() + res.filename().string();
+					if (staging_dict.count(relative_path.string()) == 0 || staging_dict[relative_path.string()] != filehash) {
+						staging_dict[relative_path.string()] = filehash;
+						updated_dict = true;
+					}
+				} else {
+					auto obj_path = create_obj(loc_path, sha256_file(loc_path), NULL);
+					std::string filehash = obj_path.parent_path().filename().string() + obj_path.filename().string();
+					if (staging_dict.count(relative_path.string()) == 0 || staging_dict[relative_path.string()] != filehash) {
+						staging_dict[relative_path.string()] = filehash;
+						updated_dict = true;
+					}
 				}
-			} else {
-				std::filesystem::remove(dir);
-				std::filesystem::create_directories(dir.parent_path());
-				std::filesystem::copy(loc_path, dir, copy_ops);
+			} catch (std::string err) {
+				ERR(err);
+				return;
 			}
+		}
+
+		// If staging dict was changed, write to STAGING
+		if (updated_dict) write_dict_file("STAGING", staging_dict);
+		else std::cout << "Nothing to add." << std::endl;
+	}
+
+	std::filesystem::path Add::dfs_add(const std::filesystem::directory_entry& entry, std::unordered_map<std::string, std::string>& dict) {
+		// If directory, object needs to be created or linked with children
+		if (entry.is_directory()) {
+			std::vector<std::string> children;
+
+			// Recursively handle children first and sort them by name in ascending order
+			for (const auto & ch : std::filesystem::directory_iterator(entry)) {
+				auto ch_path = this->dfs_add(ch, dict);
+				children.push_back(ch_path.parent_path().filename().string() + ch_path.filename().string());
+			}
+			std::sort(children.begin(), children.end());
+
+			// Concatenate filename with child names, and use that string for hash
+			std::ostringstream concat;
+			concat << entry.path().string();
+			for (size_t i = 0; i < children.size(); i++) {
+				concat << children[i];
+			}
+
+			auto res = create_obj(entry.path(), sha256(concat.str()), &children);
+			std::string filehash = res.parent_path().filename().string() + res.filename().string();
+			if (dict.count(entry.path().string()) > 0 && dict[entry.path().string()] != filehash) {
+				// Update dict entry
+				dict[entry.path().string()] = filehash;
+			}
+			this->wrote_new = created_new;
+			return res;
+		} else {
+			// Not a directory, directly create object
+			auto res = create_obj(entry.path(), sha256_file(entry.path()), nullptr);
+			std::string filehash = res.parent_path().filename().string() + res.filename().string();
+			if (dict.count(entry.path().string()) > 0 && dict[entry.path().string()] != filehash) {
+				// Update dict entry
+				dict[entry.path().string()] = filehash;
+			}
+			this->wrote_new = created_new;
+			return res;
 		}
 	}
 

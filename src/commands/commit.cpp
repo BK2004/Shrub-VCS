@@ -40,6 +40,7 @@ namespace Commands {
 
 			if (children.size() > 0) {
 				// Create commit object, link it to current head
+				sort(children.begin(), children.end());
 				auto prev_head = get_ref("head");
 				create_commit_obj(msg, children, prev_head.empty() ? NULL : &prev_head);
 			}
