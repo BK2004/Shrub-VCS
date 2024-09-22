@@ -20,15 +20,17 @@ namespace DirTrie {
 		// insert
 		// 	Recursive function to insert node with val 'val' into Trie
 		// 	Creates necessary nodes along the way
+		// 	Equivalent to set_val if the path already exists
 		// Params:
 		// 	path: Path to node that is being inserted
 		// 	val: Value of new node
+		// 	default_val: Default value of new node
 		// Returns: N/A
 		void insert(std::filesystem::path& path, T val, T default_val) {
 			// Separate path into its part
 			auto path_stack = separate_path(path);
 
-			this->insert_helper("", path_stack, val, default_val);
+			this->insert_helper(this->root, path_stack, val, default_val);
 		}
 
 		T get_val(std::filesystem::path& path) const {
@@ -48,13 +50,14 @@ namespace DirTrie {
 			std::pair<DirTrie<T>*, int> init = {this, 0};
 			bfs.push(init);
 			int i = 0;
-			std::cout << "0: ";
+			std::cout << "0:\n";
 			while (!bfs.empty()) {
 				std::pair<DirTrie<T>*, int> curr = bfs.front(); bfs.pop();
 				if (curr.second != i) {
 					i++;
 					std::cout << i << ":\n";
 				}
+
 				std::cout << "\t" << curr.first->root.string() << " = " << curr.first->get_val() << std::endl;
 
 				for (auto it = curr.first->children.begin(); it != curr.first->children.end(); it++) {
@@ -72,12 +75,12 @@ namespace DirTrie {
 		std::stack<std::string> separate_path(std::filesystem::path& path) {
 			std::stack<std::string> stack;
 			auto curr = std::filesystem::absolute(path);
-			std::cout << curr.string() << std::endl;
+			auto root = std::filesystem::absolute(this->root);
 
 			int i = 0;
 			int skip = 0; // Skip adds if '..'
-			int root_len = this->root.string().size();
-			while (!curr.empty() && curr.string().size() > root_len && curr != this->root) {
+			int root_len = root.string().size();
+			while (curr.string().size() > root_len && curr.string() != root.string()) {
 				if (curr.filename().string() == "..") {
 					skip++;
 				} else if (curr.filename().string() != ".") {
@@ -87,7 +90,7 @@ namespace DirTrie {
 				curr = curr.parent_path();
 			}
 
-			if (curr.string().size() < root_len) throw path.string() + " not in the root directory";
+			if (curr.string().size() < root_len) throw path.string() + " not in " + root.string();
 			return stack;
 		}
 
@@ -100,6 +103,7 @@ namespace DirTrie {
 
 			std::string top = path_stack.top(); path_stack.pop();
 			path = path / top;
+			
 			if (this->children.count(top) == 0) {
 				// Create new child with top segment
 				auto child = new DirTrie<T>(path, default_val);
@@ -114,7 +118,6 @@ namespace DirTrie {
 
 			auto top = path_stack.top(); path_stack.pop();
 			if (this->children.count(top) == 0) {
-				std::cout << top << std::endl;
 				throw "Path not in dirtrie";
 			};
 
