@@ -2,9 +2,6 @@
 #define ADD_H
 #include <algorithm>
 #include "command.h"
-#include "objects.h"
-#include "dict.h"
-#include "repo.h"
 
 namespace Commands {
 	class Add : public Command {

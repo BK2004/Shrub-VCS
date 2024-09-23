@@ -113,5 +113,6 @@
 		"*.idl": "cpp",
 		"filesystem": "cpp",
 		"stack": "cpp"
-	}
+	},
+	"makefile.configureOnOpen": false
 }

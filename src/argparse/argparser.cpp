@@ -1,5 +1,6 @@
 #include "argparser.h"
 #include <iostream>
+#include <climits>
 namespace ArgParse {
 	ArgParser::ArgParser(int arg_count, char** cli_args) {
 		this->arg_count = arg_count;

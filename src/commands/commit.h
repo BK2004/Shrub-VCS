@@ -2,9 +2,6 @@
 #define COMMIT_H
 #include <algorithm>
 #include "command.h"
-#include "objects.h"
-#include "repo.h"
-#include "dict.h"
 
 namespace Commands {
 	class Commit : public Command {

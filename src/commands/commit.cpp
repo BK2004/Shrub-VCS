@@ -20,7 +20,15 @@ namespace Commands {
 		
 		try {
 			auto staging_dict = Dict::read_dict_file("STAGING");
+			auto prev_commit = Repo::get_ref("head");
 			auto staging_trie = Dict::build_trie(staging_dict);
+
+			std::vector<std::string> commit_root;
+			commit_root.push_back(staging_trie->get_root().string());
+
+			Objects::create_commit_obj(msg, commit_root, prev_commit.empty() ? NULL : &prev_commit);
+
+			delete staging_trie;
 		} catch (std::string err) {
 			ERR(err);
 			return;

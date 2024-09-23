@@ -1,7 +1,10 @@
 #ifndef COMMAND_H
 #define COMMAND_H
 #include <iostream>
-#include "../argparse/argparse.h"
+#include "argparse/argparse.h"
+#include "libs/objects.h"
+#include "libs/dict.h"
+#include "libs/repo.h"
 
 #define SEE_HELP(cmd) std::cout << "For additional information, see svc help " #cmd "\n";
 #define TEXT_RED "\033[1;31m"

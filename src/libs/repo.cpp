@@ -40,12 +40,11 @@ namespace Repo {
 		ref_ofs.close();
 	}
 
-	// get_ref
-	// 	Get value of ref
-	// Params:
-	// 	ref_name: Name of reference to get
-	// Returns:
-	// 	Value of ref
+	/** 
+	 * Get value of ref
+	 * @param ref_name: Name of reference to get
+	 * @returns Value of ref, or "" if it doesn't exist
+	 */
 	std::string get_ref(const char* ref_name) {
 		auto svc_dir = get_svc_dir();
 		if (svc_dir.empty()) return "";
