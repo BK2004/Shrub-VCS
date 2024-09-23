@@ -4,7 +4,7 @@ set OUT=.\build
 set DIRS=argparse commands libs
 set MAIN_DIR=.\src
 set BUILD_EXE=app.exe
-set CLIBS=-lz -lcrypto
+set CLIBS=-lz -lcrypto -I ./src
 set PRE_BUILD=argparse/gen_argparse.sh commands/gen_commands.sh
 
 set OUT_ARGS=-o %OUT%\%BUILD_EXE% %MAIN_DIR%\main.cpp

@@ -11,7 +11,7 @@ namespace Commands {
 			return;
 		}
 
-		std::filesystem::path path = arg + "\\" + SVC_DIR;
+		std::filesystem::path path = arg + "/" + SVC_DIR;
 
 		if (!Repo::get_svc_dir().empty()) {
 			std::cout << arg << " is already being tracked." << std::endl;
@@ -20,7 +20,7 @@ namespace Commands {
 
 		std::filesystem::create_directories(path);
 		for (std::string subdir : subdirs) {
-			std::filesystem::create_directories(path.string() + "\\" + subdir);
+			std::filesystem::create_directories(path.string() + "/" + subdir);
 		}
 		std::cout << "Tracking " << arg << std::endl;
 	}

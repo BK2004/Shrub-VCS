@@ -38,5 +38,5 @@ void print_valid(char** argv, std::map<std::string, Commands::Command*> cmds) {
 	}
 	std::cout << std::endl;
 
-	std::cout << "For more information, see svc help";
+	std::cout << "For more information, see svc help" << std::endl;
 }
